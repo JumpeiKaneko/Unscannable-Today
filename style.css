@@ -1,0 +1,174 @@
+@charset "UTF-8";
+
+/* =========================================
+   Base Typography & Settings
+   ========================================= */
+:root {
+    --font-primary: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "MS PMincho", serif;
+    --font-en: "Helvetica Neue", Arial, sans-serif; /* 欧文はあえて無機質に */
+    --color-text: #ffffff;
+    --color-accent: #ff3333; /* 録画ランプのような赤 */
+    --spacing-unit: 20px;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: var(--font-primary);
+    background-color: #000;
+    color: var(--color-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* =========================================
+   Custom Loader
+   ========================================= */
+#loader-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: #000;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 1s ease;
+    pointer-events: none;
+}
+
+#loader-overlay.fade-out {
+    opacity: 0;
+}
+
+.loader-text {
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    animation: blink 2s infinite;
+}
+
+/* =========================================
+   UI Container
+   ========================================= */
+#ui-container {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    padding: var(--spacing-unit);
+    box-sizing: border-box;
+    z-index: 100;
+    pointer-events: none; /* UI下のAR操作を阻害しない */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Header */
+header {
+    text-align: left;
+    mix-blend-mode: difference; /* 背景が白でも黒でも読めるプロの技 */
+}
+
+.title {
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.meta {
+    font-size: 0.65rem;
+    margin-top: 8px;
+    opacity: 0.8;
+    letter-spacing: 0.1em;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    mix-blend-mode: difference;
+}
+
+#status-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-icon {
+    font-size: 0.6rem;
+    color: #fff;
+    transition: color 0.3s ease;
+}
+
+.status-icon.active {
+    color: var(--color-accent);
+    text-shadow: 0 0 5px var(--color-accent);
+}
+
+#instruction {
+    font-size: 0.75rem;
+    line-height: 1.6;
+    letter-spacing: 0.1em;
+    transition: opacity 0.5s ease;
+}
+
+/* =========================================
+   Focus Guide (Visual Metaphor)
+   ========================================= */
+.focus-guide {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 60vw;
+    height: 60vw; /* 正方形 */
+    transform: translate(-50%, -50%);
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0.7;
+}
+
+/* コーナーの枠線 */
+.corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-color: #fff;
+    border-style: solid;
+    transition: all 0.5s ease;
+}
+
+.top-left { top: 0; left: 0; border-width: 1px 0 0 1px; }
+.top-right { top: 0; right: 0; border-width: 1px 1px 0 0; }
+.bottom-left { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
+.bottom-right { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+
+/* 中心点（クロスヘア） */
+.center-cross {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 10px; height: 10px;
+    transform: translate(-50%, -50%);
+}
+.center-cross::before, .center-cross::after {
+    content: ''; position: absolute; background: #fff;
+}
+.center-cross::before { top: 4px; left: 0; width: 10px; height: 1px; }
+.center-cross::after { top: 0; left: 4px; width: 1px; height: 10px; }
+
+/* ロックオン時のアニメーション */
+.focus-guide.locked {
+    width: 55vw; height: 55vw; /* 少し縮む */
+    opacity: 1;
+}
+
+.focus-guide.locked .corner {
+    border-color: var(--color-accent);
+    width: 30px; height: 30px; /* 枠が強調される */
+}
+
+/* AR.jsの不要な要素を消す */
+.arjs-loader { display: none !important; }
+
+/* アニメーション定義 */
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
