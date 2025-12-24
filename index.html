@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Unscannable Today</title>
+    
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+</head>
+<body>
+
+    <div id="loader-overlay">
+        <div class="loader-text">Loading the Narrative...</div>
+    </div>
+
+    <div id="ui-container">
+        <header>
+            <h1 class="title">Unscannable Today</h1>
+            <div class="meta">視線の非対称性と日常の再構築</div>
+        </header>
+
+        <div class="focus-guide">
+            <div class="corner top-left"></div>
+            <div class="corner top-right"></div>
+            <div class="corner bottom-left"></div>
+            <div class="corner bottom-right"></div>
+            <div class="center-cross"></div>
+        </div>
+
+        <footer>
+            <div id="status-text">
+                <span class="status-icon">●</span>
+                <span id="instruction">Searching for Complexity...</span>
+            </div>
+        </footer>
+    </div>
+
+    <a-scene 
+        embedded 
+        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+        renderer="antialias: true; alpha: true; colorManagement: true;"
+        vr-mode-ui="enabled: false">
+        
+        <a-assets>
+            <audio id="story-song" src="audio.mp3" preload="auto"></audio>
+        </a-assets>
+
+        <a-marker 
+            type="pattern" 
+            url="pattern-marker.patt" 
+            id="marker"
+            smooth="true"
+            smoothCount="10"
+            smoothTolerance=".01"
+            smoothThreshold="5">
+        </a-marker>
+
+        <a-entity camera></a-entity>
+    </a-scene>
+
+    <script>
+        const marker = document.querySelector('#marker');
+        const song = document.querySelector('#story-song');
+        const instruction = document.querySelector('#instruction');
+        const statusIcon = document.querySelector('.status-icon');
+        const focusGuide = document.querySelector('.focus-guide');
+        const loader = document.querySelector('#loader-overlay');
+
+        // ロード完了処理
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                loader.classList.add('fade-out');
+            }, 1500); // 演出のため少し待機
+        });
+
+        // マーカー認識（物語化）
+        marker.addEventListener('markerFound', () => {
+            instruction.style.opacity = 0;
+            setTimeout(() => {
+                instruction.innerHTML = "Narrative Acquired.<br>物語化への到達";
+                instruction.style.opacity = 1;
+                statusIcon.classList.add('active'); // 赤く点灯
+                focusGuide.classList.add('locked'); // 枠が収束する演出
+            }, 300);
+            song.play();
+        });
+
+        // マーカーロスト（複雑性への回帰）
+        marker.addEventListener('markerLost', () => {
+            instruction.style.opacity = 0;
+            setTimeout(() => {
+                instruction.innerHTML = "Searching for Complexity...<br>眼差しを向け、フォーカスを絞る";
+                instruction.style.opacity = 1;
+                statusIcon.classList.remove('active');
+                focusGuide.classList.remove('locked');
+            }, 300);
+            // 音はあえて流しっぱなしにするか、止めるか（コンセプト次第）
+            // song.pause(); 
+        });
+    </script>
+</body>
+</html>
