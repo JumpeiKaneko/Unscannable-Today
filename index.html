@@ -6,6 +6,8 @@
     <title>Unscannable Today</title>
     
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://aframe.io" crossorigin>
+    <link rel="preconnect" href="https://raw.githack.com" crossorigin>
 
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
@@ -40,7 +42,7 @@
 
     <a-scene 
         embedded 
-        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono;"
         renderer="antialias: true; alpha: true; colorManagement: true;"
         vr-mode-ui="enabled: false">
         
@@ -53,9 +55,9 @@
             url="pattern-marker.patt" 
             id="marker"
             smooth="true"
-            smoothCount="10"
-            smoothTolerance=".01"
-            smoothThreshold="5">
+            smoothCount="6"
+            smoothTolerance=".02"
+            smoothThreshold="3">
         </a-marker>
 
         <a-entity camera></a-entity>
@@ -73,31 +75,39 @@
         window.addEventListener('load', () => {
             setTimeout(() => {
                 loader.classList.add('fade-out');
-            }, 1500); // 演出のため少し待機
+                // 完全にフェードしたらDOMから外し描画負荷を減らす
+                loader.addEventListener('transitionend', () => {
+                    loader.style.display = 'none';
+                }, { once: true });
+            }, 900); // 少し短くしてテンポを良くする
         });
 
         // マーカー認識（物語化）
         marker.addEventListener('markerFound', () => {
             instruction.style.opacity = 0;
             setTimeout(() => {
-                instruction.innerHTML = "Narrative Acquired.<br>物語化への到達";
-                instruction.style.opacity = 1;
-                statusIcon.classList.add('active'); // 赤く点灯
-                focusGuide.classList.add('locked'); // 枠が収束する演出
-            }, 300);
-            song.play();
+                requestAnimationFrame(() => {
+                    instruction.innerHTML = "Narrative Acquired.<br>物語化への到達";
+                    instruction.style.opacity = 1;
+                    statusIcon.classList.add('active'); // 赤く点灯
+                    focusGuide.classList.add('locked'); // 枠が収束する演出
+                });
+            }, 180);
+            Promise.resolve(song.play()).catch(() => {});
         });
 
         // マーカーロスト（複雑性への回帰）
         marker.addEventListener('markerLost', () => {
             instruction.style.opacity = 0;
             setTimeout(() => {
-                instruction.innerHTML = "Searching for Complexity...<br>眼差しを向け、フォーカスを絞る";
-                instruction.style.opacity = 1;
-                statusIcon.classList.remove('active');
-                focusGuide.classList.remove('locked');
-            }, 300);
-            // 音はあえて流しっぱなしにするか、止めるか（コンセプト次第）
+                requestAnimationFrame(() => {
+                    instruction.innerHTML = "Searching for Complexity...<br>眼差しを向け、フォーカスを絞る";
+                    instruction.style.opacity = 1;
+                    statusIcon.classList.remove('active');
+                    focusGuide.classList.remove('locked');
+                });
+            }, 180);
+            // コンセプト次第でサウンド制御
             // song.pause(); 
         });
     </script>
