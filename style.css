@@ -9,16 +9,24 @@
     --color-text: #ffffff;
     --color-accent: #ff3333; /* 録画ランプのような赤 */
     --spacing-unit: 20px;
+    --color-bg: #000000; /* 背景色を変数化 */
+    --max-content-width: 1200px; /* 大画面での可読幅 */
 }
 
 body {
     margin: 0;
     overflow: hidden;
     font-family: var(--font-primary);
-    background-color: #000;
+    background-color: var(--color-bg);
     color: var(--color-text);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+/* キーボード操作の視認性 */
+:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
 }
 
 /* =========================================
@@ -34,10 +42,12 @@ body {
     align-items: center;
     transition: opacity 1s ease;
     pointer-events: none;
+    will-change: opacity;
 }
 
 #loader-overlay.fade-out {
     opacity: 0;
+    visibility: hidden;
 }
 
 .loader-text {
@@ -52,7 +62,10 @@ body {
 #ui-container {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    padding: var(--spacing-unit);
+    padding: calc(var(--spacing-unit) + env(safe-area-inset-top))
+             calc(var(--spacing-unit) + env(safe-area-inset-right))
+             calc(var(--spacing-unit) + env(safe-area-inset-bottom))
+             calc(var(--spacing-unit) + env(safe-area-inset-left));
     box-sizing: border-box;
     z-index: 100;
     pointer-events: none; /* UI下のAR操作を阻害しない */
@@ -68,7 +81,7 @@ header {
 }
 
 .title {
-    font-size: 1rem;
+    font-size: clamp(0.95rem, 2.2vw, 1.25rem);
     font-weight: 500;
     margin: 0;
     letter-spacing: 0.15em;
@@ -76,7 +89,7 @@ header {
 }
 
 .meta {
-    font-size: 0.65rem;
+    font-size: clamp(0.62rem, 1.6vw, 0.8rem);
     margin-top: 8px;
     opacity: 0.8;
     letter-spacing: 0.1em;
@@ -97,16 +110,17 @@ footer {
 .status-icon {
     font-size: 0.6rem;
     color: #fff;
-    transition: color 0.3s ease;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
 }
 
 .status-icon.active {
     color: var(--color-accent);
-    text-shadow: 0 0 5px var(--color-accent);
+    text-shadow: 0 0 5px var(--color-accent), 0 0 12px rgba(255, 51, 51, 0.6);
+    animation: pulse 2s ease-in-out infinite;
 }
 
 #instruction {
-    font-size: 0.75rem;
+    font-size: clamp(0.72rem, 1.8vw, 0.95rem);
     line-height: 1.6;
     letter-spacing: 0.1em;
     transition: opacity 0.5s ease;
@@ -118,11 +132,13 @@ footer {
 .focus-guide {
     position: absolute;
     top: 50%; left: 50%;
-    width: 60vw;
-    height: 60vw; /* 正方形 */
+    width: min(60vw, 60vh);
+    height: min(60vw, 60vh); /* 正方形 */
     transform: translate(-50%, -50%);
     transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     opacity: 0.7;
+    will-change: transform, opacity;
+    transform: translate(-50%, -50%) translateZ(0);
 }
 
 /* コーナーの枠線 */
@@ -133,6 +149,7 @@ footer {
     border-color: #fff;
     border-style: solid;
     transition: all 0.5s ease;
+    will-change: width, height, border-color;
 }
 
 .top-left { top: 0; left: 0; border-width: 1px 0 0 1px; }
@@ -155,7 +172,7 @@ footer {
 
 /* ロックオン時のアニメーション */
 .focus-guide.locked {
-    width: 55vw; height: 55vw; /* 少し縮む */
+    width: min(55vw, 55vh); height: min(55vw, 55vh); /* 少し縮む */
     opacity: 1;
 }
 
@@ -166,6 +183,37 @@ footer {
 
 /* AR.jsの不要な要素を消す */
 .arjs-loader { display: none !important; }
+
+/* アニメーション定義 */
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes pulse {
+    0%, 100% { text-shadow: 0 0 6px var(--color-accent), 0 0 12px rgba(255, 51, 51, 0.4); }
+    50% { text-shadow: 0 0 10px var(--color-accent), 0 0 18px rgba(255, 51, 51, 0.8); }
+}
+
+/* レスポンシブ調整 */
+@media (max-width: 768px) {
+    #ui-container {
+        padding: calc(var(--spacing-unit) * 0.75);
+    }
+    .corner { width: 16px; height: 16px; }
+}
+
+@media (min-width: 1200px) {
+    #ui-container {
+        max-width: var(--max-content-width);
+        margin: 0 auto;
+    }
+}
+
+/* ユーザーの設定尊重（低減動作） */
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+}
 
 /* アニメーション定義 */
 @keyframes blink {
