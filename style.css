@@ -1,37 +1,22 @@
 @charset "UTF-8";
 
-/* =========================================
-   Base Typography & Settings
-   ========================================= */
+/* 設定 */
 :root {
     --font-primary: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "MS PMincho", serif;
-    --font-en: "Helvetica Neue", Arial, sans-serif; /* 欧文はあえて無機質に */
-    --color-text: #ffffff;
-    --color-accent: #ff3333; /* 録画ランプのような赤 */
-    --spacing-unit: 20px;
-    --color-bg: #000000; /* 背景色を変数化 */
-    --max-content-width: 1200px; /* 大画面での可読幅 */
+    --font-system: "Helvetica Neue", Arial, sans-serif; 
+    --color-accent: #ff0000;
+    --spacing: 30px;
 }
 
 body {
     margin: 0;
     overflow: hidden;
     font-family: var(--font-primary);
-    background-color: var(--color-bg);
-    color: var(--color-text);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    background-color: #000;
+    color: #fff;
 }
 
-/* キーボード操作の視認性 */
-:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
-}
-
-/* =========================================
-   Custom Loader
-   ========================================= */
+/* ローダー */
 #loader-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -42,122 +27,104 @@ body {
     align-items: center;
     transition: opacity 1s ease;
     pointer-events: none;
-    will-change: opacity;
 }
-
-#loader-overlay.fade-out {
-    opacity: 0;
-    visibility: hidden;
-}
-
+#loader-overlay.fade-out { opacity: 0; }
 .loader-text {
-    font-size: 0.8rem;
+    font-family: var(--font-system);
+    font-size: 0.7rem;
     letter-spacing: 0.2em;
-    animation: blink 2s infinite;
+    animation: blink 1.5s infinite;
 }
 
-/* =========================================
-   UI Container
-   ========================================= */
+/* UIコンテナ */
 #ui-container {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    padding: calc(var(--spacing-unit) + env(safe-area-inset-top))
-             calc(var(--spacing-unit) + env(safe-area-inset-right))
-             calc(var(--spacing-unit) + env(safe-area-inset-bottom))
-             calc(var(--spacing-unit) + env(safe-area-inset-left));
+    padding: var(--spacing);
     box-sizing: border-box;
     z-index: 100;
-    pointer-events: none; /* UI下のAR操作を阻害しない */
+    pointer-events: none;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
 
-/* Header */
-header {
-    text-align: left;
-    mix-blend-mode: difference; /* 背景が白でも黒でも読めるプロの技 */
-}
-
-.title {
-    font-size: clamp(0.95rem, 2.2vw, 1.25rem);
-    font-weight: 500;
-    margin: 0;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-}
-
-.meta {
-    font-size: clamp(0.62rem, 1.6vw, 0.8rem);
-    margin-top: 8px;
-    opacity: 0.8;
-    letter-spacing: 0.1em;
-}
-
-/* Footer */
-footer {
-    text-align: center;
+header, footer {
     mix-blend-mode: difference;
 }
 
+.title {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: 0.1em;
+}
+
+.meta {
+    font-family: var(--font-system);
+    font-size: 0.6rem;
+    margin-top: 5px;
+    opacity: 0.7;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* フッター情報 */
 #status-text {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 10px;
 }
 
+#instruction {
+    font-family: var(--font-system);
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+#fragment-id {
+    font-family: var(--font-system);
+    font-size: 0.6rem;
+    margin-top: 5px;
+    opacity: 0.6;
+    letter-spacing: 0.1em;
+}
+
+/* ステータスアイコン */
 .status-icon {
     font-size: 0.6rem;
-    color: #fff;
-    transition: color 0.3s ease, text-shadow 0.3s ease;
+    color: #444;
+    transition: all 0.2s;
 }
-
 .status-icon.active {
     color: var(--color-accent);
-    text-shadow: 0 0 5px var(--color-accent), 0 0 12px rgba(255, 51, 51, 0.6);
-    animation: pulse 2s ease-in-out infinite;
+    text-shadow: 0 0 8px var(--color-accent);
 }
 
-#instruction {
-    font-size: clamp(0.72rem, 1.8vw, 0.95rem);
-    line-height: 1.6;
-    letter-spacing: 0.1em;
-    transition: opacity 0.5s ease;
-}
-
-/* =========================================
-   Focus Guide (Visual Metaphor)
-   ========================================= */
+/* フォーカスガイド */
 .focus-guide {
     position: absolute;
     top: 50%; left: 50%;
-    width: min(60vw, 60vh);
-    height: min(60vw, 60vh); /* 正方形 */
+    width: 60vw; height: 60vw;
     transform: translate(-50%, -50%);
-    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    opacity: 0.7;
-    will-change: transform, opacity;
-    transform: translate(-50%, -50%) translateZ(0);
+    transition: all 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+    opacity: 0.5;
+    mix-blend-mode: difference;
 }
 
-/* コーナーの枠線 */
 .corner {
     position: absolute;
-    width: 20px;
-    height: 20px;
+    width: 15px; height: 15px;
     border-color: #fff;
     border-style: solid;
-    transition: all 0.5s ease;
-    will-change: width, height, border-color;
+    transition: all 0.4s ease;
 }
-
 .top-left { top: 0; left: 0; border-width: 1px 0 0 1px; }
 .top-right { top: 0; right: 0; border-width: 1px 1px 0 0; }
 .bottom-left { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
 .bottom-right { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
 
-/* 中心点（クロスヘア） */
 .center-cross {
     position: absolute;
     top: 50%; left: 50%;
@@ -170,53 +137,20 @@ footer {
 .center-cross::before { top: 4px; left: 0; width: 10px; height: 1px; }
 .center-cross::after { top: 0; left: 4px; width: 1px; height: 10px; }
 
-/* ロックオン時のアニメーション */
+/* ロックオン演出 */
 .focus-guide.locked {
-    width: min(55vw, 55vh); height: min(55vw, 55vh); /* 少し縮む */
+    width: 55vw; height: 55vw;
     opacity: 1;
 }
-
 .focus-guide.locked .corner {
     border-color: var(--color-accent);
-    width: 30px; height: 30px; /* 枠が強調される */
+    width: 25px; height: 25px;
+    border-width: 2px;
 }
 
-/* AR.jsの不要な要素を消す */
 .arjs-loader { display: none !important; }
 
-/* アニメーション定義 */
 @keyframes blink {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-@keyframes pulse {
-    0%, 100% { text-shadow: 0 0 6px var(--color-accent), 0 0 12px rgba(255, 51, 51, 0.4); }
-    50% { text-shadow: 0 0 10px var(--color-accent), 0 0 18px rgba(255, 51, 51, 0.8); }
-}
-
-/* レスポンシブ調整 */
-@media (max-width: 768px) {
-    #ui-container {
-        padding: calc(var(--spacing-unit) * 0.75);
-    }
-    .corner { width: 16px; height: 16px; }
-}
-
-@media (min-width: 1200px) {
-    #ui-container {
-        max-width: var(--max-content-width);
-        margin: 0 auto;
-    }
-}
-
-/* ユーザーの設定尊重（低減動作） */
-@media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; animation: none !important; }
-}
-
-/* アニメーション定義 */
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    50% { opacity: 0.3; }
 }
