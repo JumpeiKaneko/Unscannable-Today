@@ -11,16 +11,82 @@
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <style>
-        /* MindARのデフォルトUI（Scanning...などのオーバーレイ）を消す */
-        .mindar-ui-overlay { display: none !important; }
-        .mindar-ui-loading { display: none !important; }
-        .mindar-ui-scanning { display: none !important; }
+        /* MindARのUIを隠す */
+        .mindar-ui-overlay, .mindar-ui-loading, .mindar-ui-scanning { display: none !important; }
+
+        /* === ホーム画面（タイトル画面）のスタイル === */
+        #home-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000;
+            z-index: 9999; /* 最前面 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        
+        /* フェードアウト用クラス */
+        #home-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .home-title {
+            font-family: var(--font-primary);
+            font-size: 1.5rem;
+            letter-spacing: 0.2em;
+            color: #fff;
+            margin-bottom: 20px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .home-subtitle {
+            font-family: var(--font-system);
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            color: #888;
+            animation: blink 2s infinite;
+        }
+
+        /* === ホームボタンのスタイル === */
+        #home-btn {
+            position: absolute;
+            top: 30px; right: 30px; /* 右上に配置 */
+            width: 40px; height: 40px;
+            border: 1px solid rgba(255,255,255,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: all 0.3s ease;
+            z-index: 200;
+        }
+        
+        #home-btn:hover { background: rgba(255,255,255,0.1); }
+        
+        /* 四角いアイコン（Stop/Homeのメタファー） */
+        .home-icon {
+            width: 8px; height: 8px;
+            background-color: #fff;
+        }
+
     </style>
 </head>
 <body>
 
+    <div id="home-screen">
+        <h1 class="home-title">Unscannable Today</h1>
+        <div class="home-subtitle">TAP TO START</div>
+    </div>
+
     <div id="loader-overlay">
-        <div class="loader-text">Initializing Neural Networks...</div>
+        <div class="loader-text">Initializing...</div>
     </div>
 
     <div id="ui-container">
@@ -28,6 +94,10 @@
             <h1 class="title">Unscannable Today</h1>
             <div class="meta">Asymmetry of Gaze / MindAR Core</div>
         </header>
+
+        <div id="home-btn">
+            <div class="home-icon"></div>
+        </div>
 
         <div class="focus-guide">
             <div class="corner top-left"></div>
@@ -40,7 +110,7 @@
         <footer>
             <div id="status-text">
                 <span class="status-icon">●</span>
-                <span id="instruction">Processing Visual Data...</span>
+                <span id="instruction">Ready to Scan</span>
             </div>
             <div id="fragment-id"></div>
         </footer>
@@ -74,84 +144,92 @@
         <a-entity mindar-image-target="targetIndex: 5" data-sound="sound6" data-id="06"></a-entity>
         <a-entity mindar-image-target="targetIndex: 6" data-sound="sound7" data-id="07"></a-entity>
         <a-entity mindar-image-target="targetIndex: 7" data-sound="sound8" data-id="08"></a-entity>
-
     </a-scene>
 
     <script>
         const loader = document.querySelector('#loader-overlay');
+        const homeScreen = document.querySelector('#home-screen');
+        const homeBtn = document.querySelector('#home-btn');
+        
         const instruction = document.querySelector('#instruction');
         const fragmentDisplay = document.querySelector('#fragment-id');
         const statusIcon = document.querySelector('.status-icon');
         const focusGuide = document.querySelector('.focus-guide');
         const scene = document.querySelector('a-scene');
         
-        // MindARのターゲットエンティティをすべて取得
         const targets = document.querySelectorAll('[mindar-image-target]');
         let currentAudio = null;
 
-        // MindARの準備完了イベント
+        // MindAR準備完了
         scene.addEventListener("arReady", (event) => {
             console.log("MindAR is ready");
-            loader.classList.add('fade-out');
+            loader.classList.add('fade-out'); // ローダー消す
+            // ホーム画面はまだ残る（タップ待ち）
+        });
+
+        // ■ ホーム画面のタップ開始処理
+        homeScreen.addEventListener('click', () => {
+            // ホーム画面を消す
+            homeScreen.classList.add('hidden');
             instruction.innerHTML = "Scanning...";
-        });
-
-        // ロードエラー等のハンドリング
-        scene.addEventListener("arError", (event) => {
-            console.log("MindAR failed to start");
-            instruction.innerHTML = "Camera Access Denied";
-        });
-
-        targets.forEach((target) => {
             
-            // 認識成功 (Target Found)
+            // iOSの音声再生制限解除のためのダミー再生
+            if (targets.length > 0) {
+                const s = document.querySelector('#' + targets[0].getAttribute('data-sound'));
+                if(s) {
+                    s.play().then(() => s.pause()).catch(() => {});
+                }
+            }
+        });
+
+        // ■ ホームボタンの処理
+        homeBtn.addEventListener('click', () => {
+            // ホーム画面を戻す
+            homeScreen.classList.remove('hidden');
+            
+            // 再生中の音を止める
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
+            }
+            
+            // UIリセット
+            statusIcon.classList.remove('active');
+            focusGuide.classList.remove('locked');
+            fragmentDisplay.innerHTML = "";
+            instruction.innerHTML = "Ready to Scan";
+        });
+
+        // ARターゲット処理
+        targets.forEach((target) => {
             target.addEventListener('targetFound', () => {
+                // ホーム画面が出ている時は反応させない
+                if (!homeScreen.classList.contains('hidden')) return;
+
                 const soundId = target.getAttribute('data-sound');
                 const fragmentId = target.getAttribute('data-id');
                 const sound = document.querySelector('#' + soundId);
 
-                console.log(`Target ${fragmentId} found`);
-
-                // UI更新
                 instruction.innerHTML = "Acquired.";
                 fragmentDisplay.innerHTML = `NARRATIVE_FRAGMENT_${fragmentId}`;
                 statusIcon.classList.add('active');
                 focusGuide.classList.add('locked');
 
-                // 音声切り替え
                 if (currentAudio && currentAudio !== sound) {
                     currentAudio.pause();
                     currentAudio.currentTime = 0;
                 }
-                
-                // 再生
-                sound.play().catch(e => {
-                    console.log("Audio autoplay prevented", e);
-                });
+                sound.play();
                 currentAudio = sound;
             });
 
-            // 認識ロスト (Target Lost)
             target.addEventListener('targetLost', () => {
                 const soundId = target.getAttribute('data-sound');
                 const sound = document.querySelector('#' + soundId);
-                const fragmentId = target.getAttribute('data-id');
                 
-                console.log(`Target ${fragmentId} lost`);
+                if(sound) sound.pause();
 
-                if(sound) {
-                    sound.pause();
-                }
-
-                // UIリセット（少し遅延させても良いが、機械的に即座に切る）
-                // MindARは複数認識の可能性があるため、他のターゲットが認識中かチェックするのは難しいが
-                // 基本的に「ロストしたら切る」でOK
-                
-                // ただし、一瞬のチラつきでSearchingに戻るのを防ぐため、
-                // 本当に何も認識していないか確認したいが、
-                // MindARの仕様上、ここはシンプルに「ロストしたターゲットの音を止める」処理にする
-                
-                // もし「再生中の音」と「ロストした音」が同じなら、Searchingに戻す
                 if (currentAudio === sound) {
                     instruction.innerHTML = "Scanning...";
                     fragmentDisplay.innerHTML = "";
@@ -161,13 +239,6 @@
                 }
             });
         });
-        
-        // タップでオーディオコンテキスト有効化
-        document.body.addEventListener('click', () => {
-             // ダミー再生でロック解除
-             if(currentAudio && currentAudio.paused) currentAudio.play();
-        }, {once: true});
-
     </script>
 </body>
 </html>
